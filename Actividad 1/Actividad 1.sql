@@ -1,0 +1,68 @@
+CREATE TABLE Club (
+    CIF CHAR(9) PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL,
+    Sede VARCHAR(100) NOT NULL,
+    Num_Socios INT NOT NULL DEFAULT 0 CHECK (Num_Socios >= 0)
+);
+
+CREATE TABLE Patrocinador (
+    CIF CHAR(9) PRIMARY KEY,
+    NomPat VARCHAR(100) NOT NULL,
+    Rama VARCHAR(100) NOT NULL,
+    Eslogan VARCHAR(100)
+);
+
+CREATE TABLE Persona (
+    NIF CHAR(9) PRIMARY KEY,
+    Nombre VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Jugador (
+    NIF CHAR(9) PRIMARY KEY REFERENCES Persona(NIF) ON DELETE CASCADE,
+    Altura DECIMAL(3,2) NOT NULL CHECK (Altura > 0),
+    CIF CHAR(9) NOT NULL REFERENCES Club(CIF) ON DELETE CASCADE
+);
+
+CREATE TABLE Arbitro (
+    NIF CHAR(9) PRIMARY KEY REFERENCES Persona(NIF) ON DELETE CASCADE,
+    Colegio VARCHAR(100) NOT NULL,
+    Fecha_colegiatura DATE NOT NULL
+);
+
+CREATE TABLE Patrocina (
+    NIF CHAR(9) REFERENCES Jugador(NIF) ON DELETE CASCADE,
+    CIF CHAR(9) REFERENCES Patrocinador(CIF) ON DELETE CASCADE,
+    Cantidad INT NOT NULL DEFAULT 0 CHECK (Cantidad >= 0),
+    
+    CONSTRAINT PatrocinaPK PRIMARY KEY(NIF, CIF)
+);
+
+CREATE TABLE Financia (
+    CIF_P CHAR(9) REFERENCES Patrocinador(CIF) ON DELETE CASCADE,
+    CIF_C CHAR(9) REFERENCES Club(CIF) ON DELETE CASCADE,
+    Cantidad INT NOT NULL DEFAULT 0 CHECK (Cantidad >= 0),
+
+    CONSTRAINT FinanciaPK PRIMARY KEY(CIF_P, CIF_C)
+);
+
+CREATE TABLE Enfrenta (
+    CIF_local CHAR(9) REFERENCES Club(CIF) ON DELETE CASCADE,
+    CIF_visitante CHAR(9) REFERENCES Club(CIF) ON DELETE CASCADE,
+    Goles_local INT NOT NULL DEFAULT 0 CHECK (Goles_local >= 0),
+    Goles_visitante INT NOT NULL DEFAULT 0 CHECK (Goles_visitante >= 0),
+    Fecha DATE NOT NULL,
+    NIF CHAR(9) NOT NULL REFERENCES Arbitro(NIF) ON DELETE CASCADE,
+    
+    CONSTRAINT EnfrentaPK PRIMARY KEY(CIF_local, CIF_visitante)
+);
+
+CREATE TABLE Asiste (
+    NIF CHAR(9) REFERENCES Persona(NIF) ON DELETE CASCADE,
+    CIF_local CHAR(9),
+    CIF_visitante CHAR(9),
+
+    CONSTRAINT AsistePK PRIMARY KEY(NIF, CIF_local, CIF_visitante),
+    CONSTRAINT AsisteFK FOREIGN KEY(CIF_local, CIF_visitante) REFERENCES Enfrenta(CIF_local, CIF_visitante)
+);
+
+
